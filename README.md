@@ -1,5 +1,5 @@
-Secure Web App
-Enterprise Web Development Security Assignment
+# Secure Web App
+### Enterprise Web Development Security Assignment
 
 Table of contents
 General info
