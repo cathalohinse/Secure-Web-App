@@ -8,6 +8,7 @@ const Cookie = require("@hapi/cookie");
 const Joi = require("@hapi/joi");
 require("./app/models/db");
 const env = require("dotenv");
+const fs = require('fs');
 
 const dotenv = require("dotenv");
 
@@ -18,7 +19,11 @@ if (result.error) {
 }
 
 const server = Hapi.server({
-  port: process.env.PORT || 3000,
+  port: 3443,
+  tls: {
+    key: fs.readFileSync('keys/private/webserver.key'),
+    cert: fs.readFileSync('keys/webserver.crt')
+  }
 });
 
 async function init() {

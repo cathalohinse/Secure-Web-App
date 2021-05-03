@@ -2,6 +2,8 @@
 const User = require("../models/user");
 const Boom = require("@hapi/boom");
 const Joi = require("@hapi/joi");
+const bcrypt = require("bcrypt");          // ADDED
+const saltRounds = 10;                     // ADDED
 
 const Accounts = {
   index: {
@@ -20,10 +22,17 @@ const Accounts = {
     auth: false,
     validate: {
       payload: {
-        firstName: Joi.string().required(),
-        lastName: Joi.string().required(),
+        firstName: Joi.string()
+          //.min(3)
+          //.required(),
+          .regex(/^[A-Z][a-z]{2,}$/),
+        lastName: Joi.string()
+          //.alphanum()
+          .required(),
         email: Joi.string().email().required(),
-        password: Joi.string().required(),
+        password: Joi.string()
+          .min(6)
+          .required(),
       },
       options: {
         abortEarly: false,
@@ -46,11 +55,15 @@ const Accounts = {
           const message = "Email address is already registered";
           throw Boom.badData(message);
         }
+
+        const hash = await bcrypt.hash(payload.password, saltRounds);    // ADDED
+
         const newUser = new User({
           firstName: payload.firstName,
           lastName: payload.lastName,
           email: payload.email,
-          password: payload.password,
+          //password: payload.password,
+          password: hash                             // EDITED
         });
         user = await newUser.save();
         request.cookieAuth.set({ id: user.id });
@@ -94,7 +107,8 @@ const Accounts = {
           const message = "Email address is not registered";
           throw Boom.unauthorized(message);
         }
-        user.comparePassword(password);
+        //user.comparePassword(password);
+        await user.comparePassword(password);           // EDITED
         request.cookieAuth.set({ id: user.id });
         return h.redirect("/home");
       } catch (err) {
