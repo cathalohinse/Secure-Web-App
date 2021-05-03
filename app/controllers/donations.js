@@ -8,7 +8,7 @@ const Donations = {
   home: {
     handler: async function (request, h) {
       const candidates = await Candidate.find().lean();
-      return h.view("home", { title: "Make a Donation", candidates: candidates });
+      return h.view("home", { title: "Secure & Safe", candidates: candidates });
     },
   },
   report: {
