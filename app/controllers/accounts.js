@@ -6,18 +6,21 @@ const bcrypt = require("bcrypt");          // ADDED
 const saltRounds = 10;                     // ADDED
 
 const Accounts = {
+
   index: {
     auth: false,
     handler: function (request, h) {
       return h.view("main", { title: "Welcome to the Most Secure App Ever!" });
     },
   },
+
   showSignup: {
     auth: false,
     handler: function (request, h) {
       return h.view("signup", { title: "Sign up for Security" });
     },
   },
+
   signup: {
     auth: false,
     validate: {
@@ -73,12 +76,14 @@ const Accounts = {
       }
     },
   },
+
   showLogin: {
     auth: false,
     handler: function (request, h) {
       return h.view("login", { title: "Login to Security" });
     },
   },
+
   login: {
     auth: false,
     validate: {
@@ -116,60 +121,14 @@ const Accounts = {
       }
     },
   },
+
   logout: {
     handler: function (request, h) {
       request.cookieAuth.clear();
       return h.redirect("/");
     },
-  },
-  showSettings: {
-    handler: async function (request, h) {
-      try {
-        const id = request.auth.credentials.id;
-        const user = await User.findById(id).lean();
-        return h.view("settings", { title: "Donation Settings", user: user });
-      } catch (err) {
-        return h.view("login", { errors: [{ message: err.message }] });
-      }
-    },
-  },
-  updateSettings: {
-    validate: {
-      payload: {
-        firstName: Joi.string().required(),
-        lastName: Joi.string().required(),
-        email: Joi.string().email().required(),
-        password: Joi.string().required(),
-      },
-      options: {
-        abortEarly: false,
-      },
-      failAction: function (request, h, error) {
-        return h
-          .view("settings", {
-            title: "Sign up error",
-            errors: error.details,
-          })
-          .takeover()
-          .code(400);
-      },
-    },
-    handler: async function (request, h) {
-      try {
-        const userEdit = request.payload;
-        const id = request.auth.credentials.id;
-        const user = await User.findById(id);
-        user.firstName = userEdit.firstName;
-        user.lastName = userEdit.lastName;
-        user.email = userEdit.email;
-        user.password = userEdit.password;
-        await user.save();
-        return h.redirect("/settings");
-      } catch (err) {
-        return h.view("main", { errors: [{ message: err.message }] });
-      }
-    },
-  },
+  }
+
 };
 
 module.exports = Accounts;
