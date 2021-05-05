@@ -2,8 +2,9 @@
 const User = require("../models/user");
 const Boom = require("@hapi/boom");
 const Joi = require("@hapi/joi");
-const bcrypt = require("bcrypt");          // ADDED
-const saltRounds = 10;                     // ADDED
+const bcrypt = require("bcrypt");
+const saltRounds = 10;
+const sanitizeHtml = require("sanitize-html");
 
 const Accounts = {
 
@@ -26,12 +27,9 @@ const Accounts = {
     validate: {
       payload: {
         firstName: Joi.string()
-          //.min(3)
-          //.required(),
-          .regex(/^[A-Z][a-z]{2,}$/),
-        lastName: Joi.string()
-          //.alphanum()
-          .required(),
+          //.min(3).alphanum().required(),
+          .regex(/^[A-Z][A-Z,a-z]{1,}$/), //Allows for a first name with only two characters, both of which could be uppercase (e.g. 'PJ'),
+        lastName: Joi.string().regex(/^[A-Z][A-Z,a-z]{1,}$/),
         email: Joi.string().email().required(),
         password: Joi.string()
           .min(6)
@@ -59,14 +57,13 @@ const Accounts = {
           throw Boom.badData(message);
         }
 
-        const hash = await bcrypt.hash(payload.password, saltRounds);    // ADDED
+        const hash = await bcrypt.hash(payload.password, saltRounds);
 
         const newUser = new User({
-          firstName: payload.firstName,
-          lastName: payload.lastName,
-          email: payload.email,
-          //password: payload.password,
-          password: hash                             // EDITED
+          firstName: sanitizeHtml(payload.firstName),
+          lastName: sanitizeHtml(payload.lastName),
+          email: sanitizeHtml(payload.email),
+          password: sanitizeHtml(hash)
         });
         user = await newUser.save();
         request.cookieAuth.set({ id: user.id });
@@ -112,8 +109,7 @@ const Accounts = {
           const message = "Email address is not registered";
           throw Boom.unauthorized(message);
         }
-        //user.comparePassword(password);
-        await user.comparePassword(password);           // EDITED
+        await user.comparePassword(password);
         request.cookieAuth.set({ id: user.id });
         return h.redirect("/home");
       } catch (err) {
